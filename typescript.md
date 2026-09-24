@@ -699,3 +699,134 @@ try {
 
 //General rule: wrap the `await` that can fail, not just the whole function body
 ```
+
+### Classes
+Now, you know what they are (I hope, if not jeez), but these are present in JS, so they survive erasure. Let's show you and talk about the specific implementation.
+
+```ts
+class Person {
+    name: string;
+    age: number;
+
+    constructor(name: string, age: number) {
+        this.name = name;
+        this.age = age;
+    }
+
+    greet(): string {
+        return `Hi, I'm ${this.name}`;
+    }
+}
+
+const alex = new Person("Alex", 25);
+console.log(alex.greet()); // "Hi, I'm Alex"
+```
+
+The `constructor` runs when you make an object with `new`. Visually, it looks oddly similar to Java, especially in how you write constructors. But, you can get rid of the `this.name = name` stuff and just use **parameter properties**. You just need to put visibility modifiers on the constructor parameters, and it'll declare the field and assign it for you.
+
+```ts
+class Person{
+    constructor(
+        public name: string,
+        private age: number
+    ){}
+}
+
+//Does the same thing as the version above, but its shorted
+```
+
+Now, you can only use these visibility modifiers on classes, and not interfaces or types. They have strict rules on where they can be used, and to change that you have to import/export.
+
+- `public`: Accesible from anywhere
+- `private`: Only accessible from inside the class. Not even a subclass can access it.
+- `protected`: `private` but a subclass can access it. Wow.
+- `readonly`: can be used with any of them. Can only be set once (normally in the constructor) and never again.
+
+Remember, these are ***compile-time only*** restrictions. These all disappear when compiled into JS (JS didn't even have actual private fields until recently).
+
+**Implementing an interface**  
+Remember the `User` interface from the Types section? A class can promise to match a shape like that using `implements`:
+
+```ts
+interface User {
+    readonly id: number;
+    name: string;
+    email?: string;
+}
+
+class Customer implements User {
+    readonly id: number;
+    name: string;
+    email?: string;
+
+    constructor(id: number, name: string) {
+        this.id = id;
+        this.name = name;
+    }
+}
+```
+
+`implements` doesn't copy anything over for you, it just makes TS yell at you if `Customer` doesn't actually fulfill every field and method `User` demands. Good way to make sure a class stays honest to a contract.
+
+**Inheritance**  
+This was mentioned in AP CS A, but anywho. Classes can extend other classes with `extends`, inheriting their fields and methods.
+```ts
+class Animal {
+    constructor(public name: string) {}
+
+    makeSound(): string {
+        return "...";
+    }
+}
+
+class Dog extends Animal {
+    makeSound(): string {
+        return "Woof!";
+    }
+}
+
+const rex = new Dog("Rex");
+console.log(rex.name); // "Rex", inherited from Animal
+console.log(rex.makeSound()); // "Woof!", overridden in Dog
+```
+`super()` is how a subclass calls it's parent's constructor, and it has to be the first thing you do in a subclass's constructor if you write one:
+```ts
+class Dog extends Animal {
+    constructor(name: string, public breed: string) {
+        super(name); // has to happen before anything else
+    }
+}
+```
+
+### Function overloading
+You've also already seen this concept, but here's one cool way you can use it.
+```ts
+function makeId(value: number): string;
+function makeId(value: string): string;
+function makeId(value: number | string): string {
+    if (typeof value === "number") {
+        return `id-${value}`;
+    }
+    return value;
+}
+
+makeId(5);      // "id-5"
+makeId("abc");  // "abc"
+```
+
+The firs two lines aren't functions, they're signatures, that define the parameter and return implementation for different types. The actual implementation below has to be able to handle every case you promised existed. A little niche, but cool.
+
+---
+
+### TODO: Utility functions and types
+
+---
+
+# End
+Well, I hope you guys enjoyed my tutorial on TypeScript. Any questions, and you can probably go ask AI or Google for a better answer than I could provide. Thank you for reading, and happy coding.
+
+
+
+*Written by: Juan González*  
+*On 2026-9-23*  
+*Last updated: 2026-9-24*
